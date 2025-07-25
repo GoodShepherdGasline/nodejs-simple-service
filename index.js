@@ -3,7 +3,7 @@ const axios = require('axios');
 const randomstring = require('randomstring');
 
 const app = express();
-const API_KEY = 'EFueXBpQQLF6+o4sTx49ig==s4G0tOh9k4yraS0I'; // Replace with your actual API-Ninjas key
+const API_KEY = process.env.API_KEY; // <-- Now using environment variable
 
 app.get('/', async (req, res) => {
   try {
