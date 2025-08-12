@@ -45,5 +45,7 @@ function generatePin() {
     length: 16,
     charset: 'numeric'
   });
-  return raw.match(/.{1,4}/g).join('-');
+
+  const separator = process.env.PIN_SEPARATOR || '-'; // Fallback to '-' if not set
+  return raw.match(/.{1,4}/g).join(separator);
 }
