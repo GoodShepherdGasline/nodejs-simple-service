@@ -3,7 +3,7 @@ const axios = require('axios');
 const randomstring = require('randomstring');
 
 const app = express();
-const API_KEY = process.env.API_KEY; // <-- Now using environment variable
+const API_KEY = process.env.API_KEY;
 
 app.get('/', async (req, res) => {
   try {
@@ -38,14 +38,14 @@ app.get('/', async (req, res) => {
   }
 });
 
-app.listen(3501, () => console.log(`Listening on port 3501`));
-
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 function generatePin() {
   const raw = randomstring.generate({
     length: 16,
     charset: 'numeric'
   });
 
-  const separator = process.env.PIN_SEPARATOR || '-'; // Fallback to '-' if not set
+  const separator = process.env.PIN_SEPARATOR || '-';
   return raw.match(/.{1,4}/g).join(separator);
 }
