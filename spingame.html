@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spin the Will</title>
+<style>
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin-top: 50px;
+  background: #f0f0f0;
+}
+.container { max-width: 500px; margin: auto; }
+.wheel-container { position: relative; width: 400px; height: 400px; margin: 0 auto; }
+canvas { border: 5px solid #333; border-radius: 50%; background: #fff; }
+.pointer { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 2em; color: red; }
+button { margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+ul { list-style: none; padding: 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎡 Spin the Will 🎉</h1>
+  <div class="wheel-container">
+    <canvas id="wheel" width="400" height="400"></canvas>
+    <div class="pointer">▼</div>
+  </div>
+  <button id="spinButton">Spin!</button>
+  <p id="result"></p>
+  <h3>Last Spins:</h3>
+  <ul id="history"></ul>
+</div>
+
+<!-- Embedded sound effects (Base64) -->
+<audio id="spinSound" src="data:audio/mp3;base64,//UklGRiQAA..."></audio>
+<audio id="winSound" src="data:audio/mp3;base64,//UklGRiQAA..."></audio>
+
+<script>
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const spinButton = document.getElementById('spinButton');
+const result = document.getElementById('result');
+const historyEl = document.getElementById('history');
+const spinSound = document.getElementById('spinSound');
+const winSound = document.getElementById('winSound');
+
+const prizes = ["100MB","500MB","1GB","Skip Exercise","VIRTUAL HF","Shoutout"];
+const colors = ["#f94144","#f3722c","#f9c74f","#90be6d","#43aa8b","#577590"];
+let spinning = false;
+let history = JSON.parse(localStorage.getItem('spinHistory')) || [];
+updateHistoryUI();
+
+// Draw Wheel
+function drawWheel() {
+  const num = prizes.length;
+  const angle = 2 * Math.PI / num;
+  for(let i=0; i<num; i++){
+    ctx.beginPath();
+    ctx.moveTo(200,200);
+    ctx.arc(200,200,200,i*angle,(i+1)*angle);
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.save();
+    ctx.translate(200,200);
+    ctx.rotate(i*angle + angle/2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#fff";
+    ctx.font = "16px sans-serif";
+    ctx.fillText(prizes[i], 180, 5);
+    ctx.restore();
+  }
+}
+drawWheel();
+
+// Spin Function
+spinButton.addEventListener('click', () => {
+  if(spinning) return;
+  spinning = true;
+  spinSound.play();
+  
+  const prizeIndex = Math.floor(Math.random() * prizes.length);
+  const rotations = 5;
+  const degreePerPrize = 360 / prizes.length;
+  const randomOffset = Math.random() * degreePerPrize;
+  const totalDegree = 360*rotations + prizeIndex*degreePerPrize + randomOffset;
+  
+  canvas.style.transition = "transform 4s cubic-bezier(0.33, 1, 0.68, 1)";
+  canvas.style.transform = `rotate(${totalDegree}deg)`;
+  
+  setTimeout(() => {
+    const prize = prizes[prizeIndex];
+    result.textContent = `🎉 You won: ${prize}!`;
+    winSound.play();
+    addConfetti();
+    
+    history.unshift(prize);
+    if(history.length > 5) history.pop();
+    localStorage.setItem('spinHistory', JSON.stringify(history));
+    updateHistoryUI();
+    
+    spinning = false;
+    canvas.style.transition = "";
+    canvas.style.transform = `rotate(${(prizeIndex*degreePerPrize)}deg)`; // reset to prize
+  }, 4000);
+});
+
+function updateHistoryUI(){
+  historyEl.innerHTML = history.map(p => `<li>${p}</li>`).join('');
+}
+
+// Confetti
+function addConfetti(){
+  const confettiCount = 100;
+  for(let i=0;i<confettiCount;i++){
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.width = '8px';
+    div.style.height = '8px';
+    div.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+    div.style.left = Math.random()*window.innerWidth+'px';
+    div.style.top = '-10px';
+    div.style.opacity = Math.random();
+    div.style.zIndex = 9999;
+    div.style.borderRadius = "50%";
+    document.body.appendChild(div);
+    fall(div);
+  }
+}
+
+function fall(div){
+  let top = -10;
+  const speed = 2 + Math.random()*4;
+  const fallInterval = setInterval(()=>{
+    top += speed;
+    div.style.top = top + 'px';
+    if(top > window.innerHeight){
+      div.remove();
+      clearInterval(fallInterval);
+    }
+  }, 16);
+}
+</script>
+</body>
+</html>
